@@ -1,0 +1,34 @@
+{
+    "TrainingModule": "AzureDevops with IAC",
+    "InstituteName": "SAANVIK IT",
+    "TutorName": "RK",
+    "ContactNumber": 9513184144,
+    "Address": {
+                "PlotNo": 123,
+                "City": "Hyderabad",
+                "Country": "India",
+                "Pincode": 500085
+                },              
+    "Participants": [
+                    {
+                        "Name": "Anuhya",
+                        "IsAzureAdmin": true,
+                        "location": "US"
+                    },
+                    {
+                        "Name": "Chinna",
+                        "IsAzureAdmin": true,
+                        "location": "Hyderabad"
+                    },
+                    {
+                        "Name": "Gowtham",
+                        "IsAzureAdmin": true,
+                        "location": "UK"
+                    },
+                    {
+                        "Name": "Kalyan",
+                        "IsAzureAdmin": false,
+                        "location": "Hyderabad"
+                    }
+                 ]
+}
