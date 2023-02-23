@@ -1,19 +1,128 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {},
-    "variables": {},
+    "parameters": {
+        "storage_account_name": {
+           "type": "string",
+           "metadata": {
+                "description": "Name of the storage account"
+            }
+        },
+        "AccountType": {
+           "type": "string",
+           "metadata": {
+                "description": "Storage account type"
+            },
+            "allowedValues" : [
+                "Premium_LRS",
+                "Premium_ZRS",
+                "Standard_GRS",
+                "Standard_GZRS",
+                "Standard_LRS",
+                "Standard_RAGRS",
+                "Standard_RAGZRS",
+                "Standard_ZRS"
+            ],
+            "defaultValue": "Standard_LRS"
+        },
+        "virtual_network_name": {
+           "type": "string",
+           "metadata": {
+                "description": "Name of the virtual network"
+            }
+        }
+    },
+    "variables": {
+        "tags": {
+            "CreatedBy": "azureramakrishna@gmail.com",
+            "Project": "SAANVIKIT",
+            "Environment": "DEV",
+            "CostCenter": "12355",
+            "Department": "IT"
+        },
+        "virtual_network_address": ["172.16.0.0/24"],
+        "subnet_name": "saanvikit-snet-01",
+        "subnet_address": "172.16.0.0/27",
+        "public_ip_address": "saanvikit-pubip-01",
+        "nsg_name": "saanvikit-nsg-01"
+    },
     "resources": [
         {
-            "name": "saanvikit20230220",
+            "name": "[toLower(parameters('storage_account_name'))]",
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
-            "tags": {
-                "displayName": "saanvikit20230220"
-            },
+            "tags": "[variables('tags')]",
             "properties": {
-                "accountType": "Standard_LRS"
+                "accountType": "[parameters('AccountType')]"
+            }
+        },
+        {
+            "name": "[parameters('virtual_network_name')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-08-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[variables('tags')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": "[variables('virtual_network_address')]"
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('subnet_name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('subnet_address')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('public_ip_address')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-11-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[variables('tags')]",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic"                
+            }
+        },
+        {
+            "name": "[variables('nsg_name')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2018-08-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "RDP",
+                        "properties": {
+                            "description": "RDP Port",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "HTTP",
+                        "properties": {
+                            "description": "HTTP Port",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
             }
         }
     ],
