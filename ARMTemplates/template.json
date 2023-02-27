@@ -30,6 +30,30 @@
            "metadata": {
                 "description": "Name of the virtual network"
             }
+        },
+        "virtual_machine_name": {
+           "type": "string",
+           "metadata": {
+                "description": "Name of the virtual machine"
+            }
+        },
+        "virtual_machine_size": {
+           "type": "string",
+           "metadata": {
+                "description": "size of the virtual machine"
+            }
+        },
+        "adminUser": {
+           "type": "string",
+           "metadata": {
+                "description": "description"
+            }
+        },
+        "adminPassword": {
+           "type": "string",
+           "metadata": {
+                "description": "description"
+            }
         }
     },
     "variables": {
@@ -44,7 +68,8 @@
         "subnet_name": "saanvikit-snet-01",
         "subnet_address": "172.16.0.0/27",
         "public_ip_address": "saanvikit-pubip-01",
-        "nsg_name": "saanvikit-nsg-01"
+        "nsg_name": "saanvikit-nsg-01",
+        "nic_name": "saanvikit-nic-01"
     },
     "resources": [
         {
@@ -62,6 +87,9 @@
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2018-08-01",
             "location": "[resourceGroup().location]",
+            "dependsOn" : [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsg_name'))]"
+            ],
             "tags": "[variables('tags')]",
             "properties": {
                 "addressSpace": {
@@ -71,7 +99,10 @@
                     {
                         "name": "[variables('subnet_name')]",
                         "properties": {
-                            "addressPrefix": "[variables('subnet_address')]"
+                            "addressPrefix": "[variables('subnet_address')]",
+                            "networkSecurityGroup" : {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsg_name'))]"
+                            }
                         }
                     }
                 ]
@@ -123,6 +154,73 @@
                         }
                     }
                 ]
+            }
+        },
+        {
+            "name": "[variables('nic_name')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-11-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('public_ip_address'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtual_network_name'))]"
+            ],
+            "tags": "[variables('tags')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipConfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('public_ip_address'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtual_network_name'), variables('subnet_name'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[parameters('virtual_machine_name')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2021-03-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', variables('nic_name'))]"
+            ],
+            "tags": "[variables('tags')]",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('virtual_machine_size')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtual_machine_name')]",
+                    "adminUsername": "[parameters('adminUser')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2022-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "[concat(parameters('virtual_machine_name'),'-','osdisk')]",                     
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nic_name'))]"
+                        }
+                    ]
+                }
             }
         }
     ],
