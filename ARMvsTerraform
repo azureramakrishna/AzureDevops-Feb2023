@@ -1,0 +1,11 @@
+
+
+
+Getting started:
+---------------
+1. Download the terraform : https://developer.hashicorp.com/terraform/downloads
+2. Move the terraform.exe to C:/windows directory
+3. open CMD and enter terraform 
+4. Extensions to install on vscode
+	- HashiCorp Terraform
+	- Azure Terraform
