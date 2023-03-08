@@ -1,0 +1,6 @@
+nsg_name = "data-nsg-01"
+publicip_name = "data-pubip-01"
+nic_name = "data-nic-01"
+vm_name = "data-vm-01"
+vm_size = "Standard_D2s_V3"
+adminuser = "ramakrishna"
